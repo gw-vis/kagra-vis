@@ -338,10 +338,10 @@ kbd {
 <a href="#toc_1">Calibration</a>
 <ul>
 <li>
-<a href="#toc_2">Example</a>
+<a href="#toc_2">Fitting data</a>
 </li>
 <li>
-<a href="#toc_3">Calibration factor</a>
+<a href="#toc_3">Calculate the calibration factor</a>
 </li>
 </ul>
 </li>
@@ -349,37 +349,40 @@ kbd {
 <a href="#toc_4">Calibration factors</a>
 <ul>
 <li>
-<a href="#toc_5">ETMX</a>
+<a href="#toc_5">How to see the table</a>
 </li>
 <li>
-<a href="#toc_6">ETMY</a>
+<a href="#toc_6">ETMX</a>
 </li>
 <li>
-<a href="#toc_7">ITMX</a>
+<a href="#toc_7">ETMY</a>
 </li>
 <li>
-<a href="#toc_8">ITMY</a>
+<a href="#toc_8">ITMX</a>
 </li>
 <li>
-<a href="#toc_9">BS</a>
+<a href="#toc_9">ITMY</a>
 </li>
 <li>
-<a href="#toc_10">SRM</a>
+<a href="#toc_10">BS</a>
 </li>
 <li>
-<a href="#toc_11">SR2</a>
+<a href="#toc_11">SRM</a>
 </li>
 <li>
-<a href="#toc_12">SR3</a>
+<a href="#toc_12">SR2</a>
 </li>
 <li>
-<a href="#toc_13">PRM</a>
+<a href="#toc_13">SR3</a>
 </li>
 <li>
-<a href="#toc_14">PR2</a>
+<a href="#toc_14">PRM</a>
 </li>
 <li>
-<a href="#toc_15">PR3</a>
+<a href="#toc_15">PR2</a>
+</li>
+<li>
+<a href="#toc_16">PR3</a>
 </li>
 </ul>
 </li>
@@ -396,35 +399,78 @@ kbd {
 
 <h2 id="toc_1">Calibration</h2>
 
-<p>Fitting voltage or count data with linear function around nominal position (0V or 0 count) as a function of the displacement. </p>
-
-<h3 id="toc_2">Example</h3>
+<h3 id="toc_2">Fitting data</h3>
 
 <p><img src="./example.png" alt="Example"></p>
 
-<h3 id="toc_3">Calibration factor</h3>
+<p>Fitting data with linear function defined below.</p>
 
-<p>Calibration factor from count to micro meter is given by the fitted parameter above. We put the parameter b0 and b1 defined below into the gain and offset in the input filter bank, respectively.</p>
+<div><pre><code class="language-none">c = a0*(x - a1)
+ - x [um]      : Displacement [1], 
+ - c [cnt]     : LVDT count in digital system, 
+ - a0 [cnt/mm] : Calibration factor from mm to cnt, 
+ - a1 [mm]     : Displacement when the count is 0.
+ 
+Linear sensor range (x_min, x_max) 
+ - x_min, x_max : Minimum and maximum displacement.
 
-<div><pre><code class="language-none">y = b0*(x + b1)
+[1] from where? It depends on people who measure.</code></pre></div>
 
-y [um], 
-x [cnt], 
-b0 [um/cnt], 
-b1 [cnt]</code></pre></div>
+<h3 id="toc_3">Calculate the calibration factor</h3>
+
+<p>We want to know a factor from count to um. So, we resolve Equation 1 in terms of c like below.</p>
+
+<div><pre><code class="language-none">x = b0*(c + b1)  &lt;--- (Eq.1)
+ - x [um]      : Displacement [1], 
+ - c [cnt]     : LVDT count in digital system, 
+ - b0 [um/cnt] : Calibration factor from count to um, 
+ - b1 [cnt]    : LVDT count when the emitter coil is at 0 mm.
+ 
+Linear sensor range (c_min, c_max) 
+ - c_min, c_max : Minimum and maximum count of the LVDT count.
+
+[1] from where? It depends on people who measure.</code></pre></div>
+
+<p>For example, we can get paramters.</p>
+
+<div><pre><code class="language-none">b0 = 1/(a0*1000) = +0.379 [um/cnt]
+b1 = (a1*1000)/b0 = +1.64e4 [cnt]</code></pre></div>
+
+<p><strong>1)</strong> If sensor range is symmetry (c_max+c_min=0), these parameters are put on the input filter.</p>
+
+<div><pre><code class="language-none">b0  -&gt; K1:VIS-{OPTICS}_{STAGE}_LVDTINF_{SENSOR_DOF}_GAIN
+0   -&gt; K1:VIS-{OPTICS}_{STAGE}_LVDTINF_{SENSOR_DOF}_OFFSET
+
+ - OPTICS : ETMX, BS, PRM, ...
+ - STAGE : IP, BF
+ - SENSOR_DOF : V1, ..., H1, ..., GAS</code></pre></div>
+
+<p><strong>2)</strong> If sensor range is not symmetry (c_max+c_min!=0), we should change the offset </p>
+
+<div><pre><code class="language-none">b0                  -&gt; K1:VIS-{OPTICS}_{STAGE}_LVDTINF_{SENSOR_DOF}_GAIN
+-1*(c_max+c_min)/2  -&gt; K1:VIS-{OPTICS}_{STAGE}_LVDTINF_{SENSOR_DOF}_OFFSET
+
+ - OPTICS : ETMX, BS, PRM, ...
+ - STAGE : IP, BF
+ - SENSOR_DOF : V1, ..., H1, ..., GAS</code></pre></div>
 
 <h2 id="toc_4">Calibration factors</h2>
 
-<h3 id="toc_5">ETMX</h3>
+<h3 id="toc_5">How to see the table</h3>
 
-<p><font color='red'>If measured parameter and parameter on MEDM differ, the value is colored with red.</font></p>
+<ul>
+<li>If the factors put on MEDM differ the factors posted on klog, the MEDM values are colored by <font color='Red'>red</font>. </li>
+</ul>
+
+<h3 id="toc_6">ETMX</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt] <br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -432,107 +478,118 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">-0.258 (-0.2582)</td>
-<td style="text-align: left">_ (0.0)</td>
-<td style="text-align: left">[1,5]</td>
+<td style="text-align: left">(-0.258, -0.2582)</td>
+<td style="text-align: left">(-5000, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">-0.252 (-0.252)</td>
-<td style="text-align: left">_ (0.0)</td>
-<td style="text-align: left">[1,5]</td>
+<td style="text-align: left">(-0.252, -0.252)</td>
+<td style="text-align: left">(-5000, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">-0.232 (-0.233)</td>
-<td style="text-align: left">_ (0.0)</td>
-<td style="text-align: left">[1,5]</td>
+<td style="text-align: left">(-0.232, -0.233)</td>
+<td style="text-align: left">(-5000, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left">-0.248 (<font color='red'>-0.172</font>)</td>
-<td style="text-align: left">_ (0.0)</td>
-<td style="text-align: left">[1,5]</td>
+<td style="text-align: left">(-0.248, <font color='red'>-0.172</font>)</td>
+<td style="text-align: left">(-5000,<font color="Red">0</font>)</td>
+<td style="text-align: left">(-1e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">-0.223 (<font color='red'>-0.215</font>)</td>
-<td style="text-align: left">_ (+2000.0)</td>
-<td style="text-align: left">[1,3,5]</td>
+<td style="text-align: left">(-0.223, <font color='red'>-0.215</font>)</td>
+<td style="text-align: left">(-5000,<font color="Red">+2000</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3330">3330</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F2_GAS</td>
-<td style="text-align: left">-0.243 (-0.243)</td>
-<td style="text-align: left">_ (+2000.0)</td>
-<td style="text-align: left">[1,4,5]</td>
+<td style="text-align: left">(-0.243, -0.243)</td>
+<td style="text-align: left">(-5000,<font color="Red">+2000</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3276">3276</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F3_GAS</td>
-<td style="text-align: left">-0.225, (-0.2247)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(-0.225, -0.2247)</td>
+<td style="text-align: left">(-5000,<font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">+0.204 (+0.2035)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.204, +0.2035)</td>
+<td style="text-align: left">(-5000,<font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left">+0.406 (+0.406)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.406, +0.406)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">+0.382 (<font color='red'>-0.3821</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.382, <font color='red'>-0.3821</font>)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left">+0.363 (<font color='red'>-0.3629</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.363, <font color='red'>-0.3629</font>)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left">+0.378 (<font color='red'>-0.379</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.378, <font color='red'>-0.379</font>)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">+0.385 (+0.385)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.385, +0.385)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left">+0.390 (+0.3902)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,2,5]</td>
+<td style="text-align: left">(+0.390, +0.3902)</td>
+<td style="text-align: left">(0,0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX">wiki</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205">3205</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>http://gwwiki.icrr.u-tokyo.ac.jp/JGWwiki/KAGRA/Subgroups/VIS/TypeA/ETMX</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=3205</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=3330</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=3276</li>
-<li>medm から </li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find the calibration information in klog only in the JGW wiki.</li>
 </ol>
 
-<h3 id="toc_6">ETMY</h3>
+<h3 id="toc_7">ETMY</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -540,108 +597,121 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.948)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(-0.948, -0.948 )</td>
+<td style="text-align: left">(-1000, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-7e3, 9e3)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8086">8086</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.8497)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[5,4]</td>
+<td style="text-align: left">(+0.850, +0.8497)</td>
+<td style="text-align: left">(-500, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-7e3, 8e3)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8086">8086</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.1899)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[5,4]</td>
+<td style="text-align: left">(-0.190, -0.1899)</td>
+<td style="text-align: left">(-5000, <font color="Red">0</font>)</td>
+<td style="text-align: left">(-2e4, 3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8086">8086</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.125)</td>
-<td style="text-align: left">_ (+1906.0)</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(-0.125, -0.125)</td>
+<td style="text-align: left">(????, <font color="Red">+1906.0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8085">8085</a>, <a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=9378">9378</a>] [4]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.661)</td>
-<td style="text-align: left">_ (-9688.0)</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(????, <font color="Red">-0.661</font>)</td>
+<td style="text-align: left">(????, <font color="Red">-9688.0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[3]</td>
 </tr>
 <tr>
 <td style="text-align: left">F2_GAS</td>
-<td style="text-align: left">+0.719 (+0.719)</td>
-<td style="text-align: left">_ (+6850.0)</td>
-<td style="text-align: left">[3,4]</td>
+<td style="text-align: left">(+0.719, +0.719)</td>
+<td style="text-align: left">(+2500, <font color="Red">+6850.0</font>)</td>
+<td style="text-align: left">(-9e3, +4e3)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2665">2665</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F3_GAS</td>
-<td style="text-align: left">+1.52 (<font color="Red">-0.612</font>)</td>
-<td style="text-align: left">_ (-11762.0)</td>
-<td style="text-align: left">[2,4,5]</td>
+<td style="text-align: left">(-0.612, -0.612)</td>
+<td style="text-align: left">(-4000, <font color="Red">-11762.0</font>)</td>
+<td style="text-align: left">(-2e3, +1e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2575">2575</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">-1.76 (<font color="Red">-0.883</font>)</td>
-<td style="text-align: left">_ (-10585.0)</td>
-<td style="text-align: left">[1,4,6]</td>
+<td style="text-align: left">(-0.882, -0.883)</td>
+<td style="text-align: left">(+2000, <font color="Red">-10585.0</font>)</td>
+<td style="text-align: left">(-7e3, +3e3)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2499">2499</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.488)</td>
-<td style="text-align: left">, -500.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(-0.5, +0.488)</td>
+<td style="text-align: left">(+1500, <font color="Red">-500.0</font>)</td>
+<td style="text-align: left">(-1.6e4, +1.3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.476)</td>
-<td style="text-align: left">, +4135.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(+0.5, -0.476)</td>
+<td style="text-align: left">(0, <font color="Red">+4135.0</font>)</td>
+<td style="text-align: left">(-1.1e4, +1.1e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.458)</td>
-<td style="text-align: left">, -2410.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(-0.5, +0.458)</td>
+<td style="text-align: left">(+1500, <font color="Red">-2410.0</font>)</td>
+<td style="text-align: left">(-1.6e4, +1.3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.409)</td>
-<td style="text-align: left">, +1871.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(+0.4, +0.409)</td>
+<td style="text-align: left">(+1500, <font color="Red">+1871.0</font>)</td>
+<td style="text-align: left">(-1.1e4, 0.8e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.439)</td>
-<td style="text-align: left">, +1602.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(+0.4, +0.439)</td>
+<td style="text-align: left">(+2500, <font color="Red">+1602.0</font>)</td>
+<td style="text-align: left">(-1.3e4, +0.8e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.385)</td>
-<td style="text-align: left">, -692.0</td>
-<td style="text-align: left">[4]</td>
+<td style="text-align: left">(-0.4, -0.385)</td>
+<td style="text-align: left">(-1500, <font color="Red">-692.0</font>)</td>
+<td style="text-align: left">(-0.8e4, +1.1e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603">7603</a>] [2]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=2499</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=2575</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=2665</li>
-<li>MEDMから</li>
-<li>Sensor range is +/- 2V.</li>
-<li>Sensor range is +/- 1V.</li>
+<li><font color='Red'>Wrong c2v (10/2**15 = 0.3052e-3) is used</font>. Correct one is 40/2**16 = 0.6104e-3. It should be modified to correct value. </li>
+<li>Correct value is used. But, values should have one significant figure according to original data in #7603. </li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find in klog. </li>
+<li><font color='Red'>Where should we refer this value?</font> 値が更新されているが、その値に関係した測定がklogにない。古い方(#8085)なら測定の情報がかいてあるが、これは使われていない。</li>
 </ol>
 
-<h3 id="toc_7">ITMX</h3>
+<h3 id="toc_8">ITMX</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt] <br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -649,110 +719,122 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.2987)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(+0.299, +0.2987)</td>
+<td style="text-align: left">(-2000, <font color='red'>0</font>)</td>
+<td style="text-align: left">(-1.3e4, +1.7e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5131">5131</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.1669)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.1669, -0.1669)</td>
+<td style="text-align: left">(-2500, <font color='red'>0</font>)</td>
+<td style="text-align: left">(-1.7e4, +2.2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5131">5131</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.2323)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(+0.232, +0.2323)</td>
+<td style="text-align: left">(-1500, <font color='red'>0</font>)</td>
+<td style="text-align: left">(-1.7e4, +2.0e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5131">5131</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.22)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(-0.22, -0.22)</td>
+<td style="text-align: left">(????, <font color='red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8862">8862</a>] [3]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.18)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(-0.363, <font color='red'>-0.18</font>)</td>
+<td style="text-align: left">(????, <font color='red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8862">8862</a>] [3]</td>
 </tr>
 <tr>
 <td style="text-align: left">F2_GAS</td>
-<td style="text-align: left">-0.77 (<font color='red'>-0.215</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[4,6,8]</td>
+<td style="text-align: left">(-0.430, <font color='red'>-0.215</font>)</td>
+<td style="text-align: left">(????, <font color='red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4406">4406</a>, <a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8862">8862</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F3_GAS</td>
-<td style="text-align: left">+0.958 (<font color='red'>+0.194</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[3,6,7]</td>
+<td style="text-align: left">(+0.389, <font color='Red'>+0.194</font>)</td>
+<td style="text-align: left">(-8000, <font color='red'>0</font>)</td>
+<td style="text-align: left">(-1.6e4, +3.2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4257">4257</a>, <a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8862">8862</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">-0.629 (<font color='red'>-0.296</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[2,6,7]</td>
+<td style="text-align: left">(-0.592, <font color='Red'>-0.296</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2.0e4, +2.0e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4211">4211</a>, <a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8862">8862</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left">+0.371 (+0.371)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(+0.371, +0.371)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">+0.381 (<font color='red'>-0.4396</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(+0.381, <font color='red'>-0.440</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>] [5]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left">+0.387 (<font color='red'>+0.4044</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(+0.387, <font color='red'>+0.404</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>] [5]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left">-0.354 (-0.354)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(-0.354, -0.354)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">-0.367 (-0.367)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(-0.367, -0.367)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left">+0.385 (<font color='red'>-0.385</font>)</td>
-<td style="text-align: left">, 0</td>
-<td style="text-align: left">[1,6]</td>
+<td style="text-align: left">(+0.385, <font color='red'>-0.385</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002">5002</a>, <a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=6847">6847</a>] [4]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5002</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=4211</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=4257</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=4406</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5131</li>
-<li>Medm から</li>
-<li>Sensor range is +/- 5V.</li>
-<li>Sensor range is +/- 4V.</li>
+<li><font color='Red'>Where should we refer this value?</font> 最新の値に関係した測定の情報が見当たらない。#8862 で値が最新に更新されているが、測定の情報はklogにはみつからなかった。ちなみにもし、#4406の古い測定の値を c2v(=0.6104e-3) を使って計算すると、0.8 [um/cnt] が入る。が、再測定が必要と記述があるので、やはり最新の値を使うべきと思う。</li>
+<li>古い情報が残っているとおもう。Modified new values are posted on #8862. Old ones are calculated by wrong c2v which is a half of the correct value. Correct value is 40/2**16 (=0.6104e-3). However, I think old ones posted on #4257 and #4211 are still used in the actual values on medm, respectively.</li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find measurement imformation related F0 and F1 GAS in klog. I just found the calibration factor only in #8862.</li>
+<li>間違った符号が入っていると #6847 報告があったが、どうやら再び、間違った値が medm に入っている。正しい値は &quot;+0.385&quot; であり、 &quot;-0.385&quot; ではない。</li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find the values on klog. </li>
 </ol>
 
-<h3 id="toc_8">ITMY</h3>
+<h3 id="toc_9">ITMY</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -760,110 +842,122 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.2676)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(????, <font color="Red">-0.268</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[2]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.2077)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(????, <font color="Red">-0.208</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[2]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left"><font color="Red">????</font> (+0.2369)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(????, <font color="Red">+0.237</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[2]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left"><font color="Red">????</font> (-0.3)</td>
-<td style="text-align: left">_ 0</td>
-<td style="text-align: left">[6]</td>
+<td style="text-align: left">(????, <font color="Red">-0.300</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[2]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">-0.342 (-0.342)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[4,6]</td>
+<td style="text-align: left">(-0.342, -0.342)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-1e4, +1e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5587">5587</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F2_GAS</td>
-<td style="text-align: left">+0.951 (<font color="Red">+0.0979</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[3,6,7]</td>
+<td style="text-align: left">(+0.951, <font color="Red">+0.0979</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5494">5494</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F3_GAS</td>
-<td style="text-align: left">+0.219 (+0.21876)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[2,6,8]</td>
+<td style="text-align: left">(+0.219, +0.219)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.8e4, +0.8e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5325">5325</a>] [3]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">+0.452, (<font color="Red">+0.321</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[1,6,8]</td>
+<td style="text-align: left">(+0.452, <font color="Red">+0.321</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5249">5249</a>] [4]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left">-0.304 (-0.304)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.304, -0.304)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">-0.337 (<font color="Red">+0.334</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.337, <font color="Red">+0.334</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>] [5]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left">-0.321 (-0.320)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.321, -0.320)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left">+0.373 (+0.374)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(+0.373, +0.374)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">-0.313 (<font color="Red">+0.313</font>)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.313, <font color="Red">+0.313</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>] [5]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left">-0.323 (-0.323)</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left">[5,6]</td>
+<td style="text-align: left">(-0.323, -0.323)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, 2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5249</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5325</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5494</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5587</li>
-<li>http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756</li>
-<li>MEDMから</li>
-<li> [3]のグラフより、-2.5Vをノミナル位置として±1Vの線形範囲をもつことがわかる。この範囲での係数は0.951 [um/cnt]。だがmedmではは0V位置をノミナルにしているので、この係数は使えない。使うには0V付近でフィッティングした係数を使う必要あり。</li>
-<li>Sensor range is +/- 5V.</li>
+<li><font color='Red'>Where should we refer this value?</font> #5494のグラフより、-2.5Vをノミナル位置として±1Vの線形範囲をもつことがわかる。この範囲での係数は0.951 [um/cnt]。だがmedmではは0V位置をノミナルにしているので、この係数は使えない。使うには0V付近でフィッティングした係数を使う必要あり。</li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find the values on klog. </li>
+<li>Use correct c2v.</li>
+<li><font color='Red'>Where should we refer this value?</font> According to #5249, value should be +0.452. But, actual value on medm does not same as it.</li>
+<li><font color='Red'>Where should we refer this value?</font> According to #5756, value should be &quot;-0.337&quot; and &quot;-0.313&quot; for BF_H2 and BF_V2, respectively. But, actual value on medm does not same as these.</li>
 </ol>
 
-<h3 id="toc_9">BS</h3>
+<h3 id="toc_10">BS</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -871,91 +965,62 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.327, +0.327)</td>
+<td style="text-align: left">(0, <font color="Red">-1122.9</font>)</td>
+<td style="text-align: left">(-1.5e4, +1.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7656">7656</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.299, +0.299)</td>
+<td style="text-align: left">(0, <font color="Red">-1264.2</font>)</td>
+<td style="text-align: left">(-1.5e4, +1.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7656">7656</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.396, +0.396)</td>
+<td style="text-align: left">(0, <font color="Red">-868.5</font>)</td>
+<td style="text-align: left">(-1.0e4, +1.0e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7656">7656</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.886, <font color="Red">+1.116</font>)</td>
+<td style="text-align: left">(0, <font color="Red">+870.0</font>)</td>
+<td style="text-align: left">(-2000, +2000)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7072">7072</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.772, +0.771)</td>
+<td style="text-align: left">(-900, <font color="Red">-1090.0</font>)</td>
+<td style="text-align: left">(+200, +2000)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3358">3358</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.427, +0.427)</td>
+<td style="text-align: left">(-1000, <font color="Red">-350.0</font>)</td>
+<td style="text-align: left">(-2000, +4000)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3280">3280</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
+<li><font color='Red'>Where should we refer this value?</font> According to #7072, value should be +0.886. But, actual value on medm does not same as it.</li>
 </ol>
 
-<h3 id="toc_10">SRM</h3>
+<h3 id="toc_11">SRM</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -963,91 +1028,62 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.294, +0.294)</td>
+<td style="text-align: left">(0, <font color="Red">-373.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7087">7087</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.315, +0.315)</td>
+<td style="text-align: left">(0, <font color="Red">-1253.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7087">7087</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.317, +0.317)</td>
+<td style="text-align: left">(0, <font color="Red">-146.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7087">7087</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-0.186, <font color="Red">+0.185</font>)</td>
+<td style="text-align: left">(-5000, <font color="Red">+2551.0</font>)</td>
+<td style="text-align: left">(-1.5e4, +2.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=7427">7427</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.141, +0.141)</td>
+<td style="text-align: left">(-5000, <font color="Red">-4005.0</font>)</td>
+<td style="text-align: left">(-1.5e4, +2.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4688">4688</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.156, +0.156)</td>
+<td style="text-align: left">(-5000, <font color="Red">+2058.2</font>)</td>
+<td style="text-align: left">(-1.5e4, +2.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4688">4688</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
+<li><font color='Red'>Where should we refer this value?</font> According to #7427, value should be -0.186. But, actual value on medm does not same as it.</li>
 </ol>
 
-<h3 id="toc_11">SR2</h3>
+<h3 id="toc_12">SR2</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -1055,91 +1091,62 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.281, +0.281)</td>
+<td style="text-align: left">(0, <font color='Red'>+2057.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=6078">6078</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.306, +0.306)</td>
+<td style="text-align: left">(0, <font color='Red'>-2552.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=6078">6078</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.301, +0.301)</td>
+<td style="text-align: left">(0, <font color='Red'>-2022.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=6078">6078</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.178, +0.178)</td>
+<td style="text-align: left">(-5000, <font color='Red'>-10214.0</font>)</td>
+<td style="text-align: left">(-2e4, +3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=6080">6080</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.090, +0.090)</td>
+<td style="text-align: left">(0, <font color='Red'>-4740.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4365">4365</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.160, +0.160)</td>
+<td style="text-align: left">(-5000, <font color='Red'>+886.0</font>)</td>
+<td style="text-align: left">(-1e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4166">4166</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
+<li>Fine! </li>
 </ol>
 
-<h3 id="toc_12">SR3</h3>
+<h3 id="toc_13">SR3</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -1147,91 +1154,140 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.262, +0.262)</td>
+<td style="text-align: left">(0, <font color='Red'>-876.4</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5551">5551</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.240, +0.240)</td>
+<td style="text-align: left">(0, <font color='Red'>-877.8</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5551">5551</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.253, +0.253)</td>
+<td style="text-align: left">(0, <font color='Red'>-1188.6</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5551">5551</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-0.182, +0.181)</td>
+<td style="text-align: left">(0, <font color='Red'>-677.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5529">5529</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.088, +0.088)</td>
+<td style="text-align: left">(0, <font color='Red'>-1690.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4650">4650</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.055, +0.055)</td>
+<td style="text-align: left">(0, <font color='Red'>-5170.0</font>)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=4650">4650</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
+<li>Fine!</li>
 </ol>
 
-<h3 id="toc_13">PRM</h3>
+<h3 id="toc_14">PRM</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
+<th style="text-align: left">Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left">BF_GAS</td>
+<td style="text-align: left">(+0.241, +0.241)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-2e4, +2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3290">3290</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">SF_GAS</td>
+<td style="text-align: left">(+0.251, <font color='Red'>+1.000</font>)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=8399">8399</a>] [1]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_H1</td>
+<td style="text-align: left">(-0.973, -0.973)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.4e4, +0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_H2</td>
+<td style="text-align: left">(-0.940, -0.940)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.5e4, +0.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_H3</td>
+<td style="text-align: left">(-0.945, -0.945)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.5e4, +0.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_V1</td>
+<td style="text-align: left">(+0.941, +0.941)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.5e4, +0.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_V2</td>
+<td style="text-align: left">(-0.956, -0.956)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.4e4, +0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>]</td>
+</tr>
+<tr>
+<td style="text-align: left">BF_V3</td>
+<td style="text-align: left">(-0.954, <font color="Red">+0.954</font>)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.5e4, +0.5e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2926">2926</a>] [2]</td>
+</tr>
+</tbody>
+</table>
+
+<ol>
+<li><font color='Red'>Where should we refer this value?</font> #8399 によれば、+0.251だが、測定がklogに残されていない。</li>
+<li> <font color='Red'>Where should we refer this value?</font> According to #2926, value should be &quot;-0.954&quot;. But, actual value on medm does not same as it.</li>
+</ol>
+
+<h3 id="toc_15">PR2</h3>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Item</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -1239,67 +1295,77 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">SF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-0.322, -0.322)</td>
+<td style="text-align: left">(-2500, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-0.5e4, 1.0e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3132">3132</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.414, +0.414)</td>
+<td style="text-align: left">(????, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(????, ????)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=3077">3077</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.229, <font color='Red'>+1.229</font>)</td>
+<td style="text-align: left">(0, <font color='Red'>+44.1</font>)</td>
+<td style="text-align: left">(-0.4e4,+0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.250, <font color='Red'>+1.250</font>)</td>
+<td style="text-align: left">(0, <font color='Red'>+419.2</font>)</td>
+<td style="text-align: left">(-0.4e4,+0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.216, -1.216)</td>
+<td style="text-align: left">(0, <font color='Red'>+30.6</font>)</td>
+<td style="text-align: left">(-0.4e4,+0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+1.203, <font color='Red'>-1.202</font>)</td>
+<td style="text-align: left">(+1000, <font color='Red'>+1103.5</font>)</td>
+<td style="text-align: left">(-0.5e4,+0.3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>] [2]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+1.229, +1.229)</td>
+<td style="text-align: left">(0, <font color='Red'>-516.7</font>)</td>
+<td style="text-align: left">(-0.4e4,+0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+1.224, <font color='Red'>-1.224</font>)</td>
+<td style="text-align: left">(0, <font color='Red'>+142.9</font>)</td>
+<td style="text-align: left">(-0.4e4,+0.4e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2906">2906</a>] [2]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
+<li><font color='Red'>Where should we refer this value?</font> I could not find measurement in klog.</li>
+<li><font color='Red'>Where should we refer this value?</font> Polarity is changed.</li>
 </ol>
 
-<h3 id="toc_14">PR2</h3>
+<h3 id="toc_16">PR3</h3>
 
 <table>
 <thead>
 <tr>
 <th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
+<th style="text-align: left">b0 [um/cnt]<br> (klog, medm)</th>
+<th style="text-align: left">offset [cnt] <br> (klog, medm)</th>
+<th style="text-align: left">Linear Range <br>(Min cnt, Max cnt)</th>
 <th style="text-align: left">Description</th>
 </tr>
 </thead>
@@ -1307,125 +1373,65 @@ b1 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">SF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+0.337, +0.337)</td>
+<td style="text-align: left">(+2500, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-1.5e4, +1.0e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2739">2739</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-0.342, <font color='Red'>+0.342</font>)</td>
+<td style="text-align: left">(+7500, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-1.5e4,0)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2670">2670</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.610, <font color='Red'>-1.658</font>)</td>
+<td style="text-align: left">(+1000, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-0.4e4, +0.2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.645, <font color='Red'>+1.645</font>)</td>
+<td style="text-align: left">(+500, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-0.3e4, +0.2e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.681, <font color='Red'>+1.681</font>)</td>
+<td style="text-align: left">(+500, <font color='Red'>0</font>)</td>
+<td style="text-align: left">(-0.35e4, +0.25e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>] [1]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+1.722, +1.722)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.25e4, +0.25e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(-1.730, -1.730)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.3e4, +0.3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
+<td style="text-align: left">(+1.611, +1.611)</td>
+<td style="text-align: left">(0, 0)</td>
+<td style="text-align: left">(-0.3e4, +0.3e4)</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2627">2627</a>]</td>
 </tr>
 </tbody>
 </table>
 
 <ol>
-<li>hoge</li>
-</ol>
-
-<h3 id="toc_15">PR3</h3>
-
-<table>
-<thead>
-<tr>
-<th style="text-align: left">Item</th>
-<th style="text-align: left">b0 [um/cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">b1 [cnt]<br> measured (MEDM)</th>
-<th style="text-align: left">Description</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td style="text-align: left">SF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_H3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V1</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V2</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-<tr>
-<td style="text-align: left">BF_V3</td>
-<td style="text-align: left">_ ()</td>
-<td style="text-align: left">_ (0)</td>
-<td style="text-align: left"></td>
-</tr>
-</tbody>
-</table>
-
-<ol>
-<li>hoge</li>
+<li><font color='Red'>Where should we refer this value?</font> Polarity is changed.</li>
 </ol>
 
 
