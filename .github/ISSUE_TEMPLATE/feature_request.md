@@ -7,17 +7,16 @@ assignees: ''
 
 ---
 
-## Is your feature request related to a problem? Please describe.
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## What is your idea (ticket) to improve the VIS?
 
-## Describe the solution you'd like
-A clear and concise description of what you want to happen.
 
-## Describe alternatives you've considered
-A clear and concise description of any alternative solutions or features you've considered.
+## Please describe divide your ticket into small tasks.
+- [ ] aaa
+- [ ] bbb
+- [ ] ccc
+- [ ] **Review**
+- [ ] **Close**
 
-## Additional context
-Add any other context or screenshots about the feature request here.
 
-## To Do 
-List up the To Do.
+## Please describe a criteria of the review in detail.
+
