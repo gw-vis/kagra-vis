@@ -18,5 +18,5 @@ assignees: ''
 - [ ] **Close**
 
 
-## Please describe a criteria of the review in detail.
+## Please describe the criteria of the review in detail.
 
