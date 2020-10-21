@@ -153,26 +153,25 @@ We do not select b1 as the offset in the input filter. The offsets are selected 
 ### ITMY
 | Item | Gain [um/cnt]<br> (klog, medm)| Offset [cnt] <br> (klog, medm)| Linear Range [cnt] <br>(c\_min, c\_max)|Description |
 | :--|:--|:--|:---|:--|
-| IP_H1 | (<font color="Red">????</font>, -0.268) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [*2] |
-| IP_H2 | (<font color="Red">????</font>, -0.208) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [*2]|
-| IP_H3 | (<font color="Red">????</font>, +0.237) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [*2]|
-| F0_GAS | (<font color="Red">????</font>, -0.300) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [*2]|
+| IP_H1 | (-0.268, -0.268) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5822](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822)] |
+| IP_H2 | (-0.208, -0.208) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5822](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822)]|
+| IP_H3 | (+0.237, +0.237) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5822](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822),[5829](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5829)]|
+| F0_GAS | (<font color="Red">????</font>, -0.300) | (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5822](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822)]|
 | F1_GAS | (-0.342, -0.342) | (0, 0) |(-1e4, +1e4)| [[5587](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5587)] |
 | F2_GAS | (+0.951, <font color="Red">+0.0979</font>) [*1]| (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5494](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5494)] |
-| F3_GAS | (+0.219, +0.219) [*3]| (0, 0) |(-0.8e4, +0.8e4)| [[5325](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5325)]|
-| BF_GAS | (+0.452, <font color="Red">+0.321</font>) [*4]| (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5249](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5249)] |
+| F3_GAS | (+0.219, +0.219) [*2]| (0, 0) |(-0.8e4, +0.8e4)| [[5325](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5325)]|
+| BF_GAS | (+0.452, <font color="Red">+0.321</font>) [*3]| (<font color="Red">????</font>, 0) |<font color="Red">(????, ????)</font>| [[5249](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5249)] |
 | BF_H1 | (-0.304, -0.304) | (0, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)] |
-| BF_H2 | (-0.337, <font color="Red">+0.334</font>) [*5]| (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)] |
+| BF_H2 | (-0.337, <font color="Red">+0.334</font>) [*4]| (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)] |
 | BF_H3 | (-0.321, -0.320) | (xxxx, 0) |(-2e4, 2e4) | [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)]|
 | BF_V1 | (+0.373, +0.374) | (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)]|
-| BF_V2 | (-0.313, <font color="Red">+0.313</font>) [*5]| (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)] |
+| BF_V2 | (-0.313, <font color="Red">+0.313</font>) [*4]| (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)] |
 | BF_V3 | (-0.323, -0.323) | (xxxx, 0) |(-2e4, 2e4)| [[5756](http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756)]|
 
 1. <font color='Red'>Where should we refer this value?</font> #5494のグラフより、-2.5Vをノミナル位置として±1Vの線形範囲をもつことがわかる。この範囲での係数は0.951 [um/cnt]。だがmedmではは0V位置をノミナルにしているので、この係数は使えない。使うには0V付近でフィッティングした係数を使う必要あり。
-2. <font color='Red'>Where should we refer this value?</font> I could not find the values on klog. 
-3. Use correct c2v.
-4. <font color='Red'>Where should we refer this value?</font> According to #5249, value should be +0.452. But, actual value on medm does not same as it.
-5. <font color='Red'>Where should we refer this value?</font> According to #5756, value should be "-0.337" and "-0.313" for BF\_H2 and BF\_V2, respectively. But, actual value on medm does not same as these.
+2. Use correct c2v.
+3. <font color='Red'>Where should we refer this value?</font> According to #5249, value should be +0.452. But, actual value on medm does not same as it.
+4. <font color='Red'>Where should we refer this value?</font> According to #5756, value should be "-0.337" and "-0.313" for BF\_H2 and BF\_V2, respectively. But, actual value on medm does not same as these.
 
 
 ### BS
