@@ -42,7 +42,7 @@ Linear sensor range (x_min, x_max)
 We want to know a factor from count to um. So, we resolve Equation 1 in terms of c.
 
 ```
-x = Gain*(c + b1)  <--- (Eq.1)
+x = b0*(c + b1)  <--- (Eq.1)
  - x [um]      : Displacement [1], 
  - c [cnt]     : LVDT count in digital system, 
  - b0 [um/cnt] : Calibration factor from count to um 
@@ -59,7 +59,7 @@ For example, we can get paramters from example plot shown above.
 
 ```
 b0 = 1/(a0*1000) = +0.379 [um/cnt]
-b1 = (a1*1000)/Gain = +1.64e4 [cnt]
+b1 = (a1*1000)/a0 = +1.64e4 [cnt]
 ```
 **1) Gain**
 
@@ -112,7 +112,7 @@ We do not select b1 as the offset in the input filter. The offsets are selected 
 | F1_GAS | (????, <font color="Red">-0.661</font>) [*3]| (????, -9688.0) |(????, ????)| ???? |
 | F2_GAS | (+0.719, +0.719) | (xxxx, +6850.0) |(-9e3, +4e3)| [[2665](http://klog.icrr.u-tokyo.ac.jp/osl/?r=2665)] |
 | F3_GAS | (-0.612, -0.612) | (xxxx, -11762.0) |(-2e3, +1e4)| [[2575](http://klog.icrr.u-tokyo.ac.jp/osl/?r=2575)]|
-| BF_GAS | (<font color='Red'>-0.882</font>, -0.883) [*1]| (xxxx, -10585.0) |(-7e3, +3e3)| [[2499](http://klog.icrr.u-tokyo.ac.jp/osl/?r=2499)] |
+| BF_GAS | (-0.848, -0.848)|  | [*1]| [[15789](http://klog.icrr.u-tokyo.ac.jp/osl/?r=15789)] |
 | BF_H1 | (-0.5, +0.488) [*2]| (xxxx, -500.0) |(-1.6e4, +1.3e4)| [[7603](http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603)] |
 | BF_H2 | (+0.5, -0.476) [*2]| (xxxx, +4135.0) |(-1.1e4, +1.1e4)| [[7603](http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603)] |
 | BF_H3 | (-0.5, +0.458) [*2]| (xxxx, -2410.0) |(-1.6e4, +1.3e4)| [[7603](http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603)] |
@@ -120,7 +120,7 @@ We do not select b1 as the offset in the input filter. The offsets are selected 
 | BF_V2 | (+0.4, +0.439) [*2]| (xxxx, +1602.0) |(-1.3e4, +0.8e4)| [[7603](http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603)] |
 | BF_V3 | (-0.4, -0.385) [*2]| (xxxx, -692.0) |(-0.8e4, +1.1e4)| [[7603](http://klog.icrr.u-tokyo.ac.jp/osl/?r=7603)]|
 
-1. <font color='Red'>Wrong c2v is used</font>. Correct one is 40/2\**16 = 0.6104e-3, not 10/2\*\*15 = 0.3052e-3. It should be modified to correct value. 
+1. Nominal position is setted at 70 mm but the zero cross point is 69 mm according to the plot#1 in klog. Additionally, The linear range is from 65 mm to 75 mm. 
 2. Correct value is used. But, values should have one significant figure according to original data in #7603. 
 3. <font color='Red'>Where should we refer this value?</font> I could not find in klog. 
 4. <font color='Red'>Where should we refer this value?</font> 値が更新されているが、その値に関係した測定がklogにない。古い方(#8085)なら測定の情報がかいてあるが、これは使われていない。

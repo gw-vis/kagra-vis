@@ -377,7 +377,7 @@ Linear sensor range (x_min, x_max)
 
 <p>We want to know a factor from count to um. So, we resolve Equation 1 in terms of c.</p>
 
-<div><pre><code class="language-none">x = Gain*(c + b1)  &lt;--- (Eq.1)
+<div><pre><code class="language-none">x = b0*(c + b1)  &lt;--- (Eq.1)
  - x [um]      : Displacement [1], 
  - c [cnt]     : LVDT count in digital system, 
  - b0 [um/cnt] : Calibration factor from count to um 
@@ -392,7 +392,7 @@ Linear sensor range (c_min, c_max)
 <p>For example, we can get paramters from example plot shown above.</p>
 
 <div><pre><code class="language-none">b0 = 1/(a0*1000) = +0.379 [um/cnt]
-b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
+b1 = (a1*1000)/a0 = +1.64e4 [cnt]</code></pre></div>
 
 <p><strong>1) Gain</strong></p>
 
@@ -599,10 +599,10 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">(<font color='Red'>-0.882</font>, -0.883) [*1]</td>
-<td style="text-align: left">(xxxx, -10585.0)</td>
-<td style="text-align: left">(-7e3, +3e3)</td>
-<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=2499">2499</a>]</td>
+<td style="text-align: left">(-0.848, -0.848)</td>
+<td style="text-align: left"></td>
+<td style="text-align: left">[*1]</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=15789">15789</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_H1</td>
@@ -650,7 +650,7 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 </table>
 
 <ol>
-<li><font color='Red'>Wrong c2v is used</font>. Correct one is 40/2**16 = 0.6104e-3, not 10/2**15 = 0.3052e-3. It should be modified to correct value. </li>
+<li>Nominal position is setted at 70 mm but the zero cross point is 69 mm according to the plot#1 in klog. Additionally, The linear range is from 65 mm to 75 mm. </li>
 <li>Correct value is used. But, values should have one significant figure according to original data in #7603. </li>
 <li><font color='Red'>Where should we refer this value?</font> I could not find in klog. </li>
 <li><font color='Red'>Where should we refer this value?</font> 値が更新されているが、その値に関係した測定がklogにない。古い方(#8085)なら測定の情報がかいてあるが、これは使われていない。</li>
@@ -795,31 +795,31 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 <tbody>
 <tr>
 <td style="text-align: left">IP_H1</td>
-<td style="text-align: left">(<font color="Red">????</font>, -0.268)</td>
+<td style="text-align: left">(-0.268, -0.268)</td>
 <td style="text-align: left">(<font color="Red">????</font>, 0)</td>
 <td style="text-align: left"><font color="Red">(????, ????)</font></td>
-<td style="text-align: left">[*2]</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822">5822</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H2</td>
-<td style="text-align: left">(<font color="Red">????</font>, -0.208)</td>
+<td style="text-align: left">(-0.208, -0.208)</td>
 <td style="text-align: left">(<font color="Red">????</font>, 0)</td>
 <td style="text-align: left"><font color="Red">(????, ????)</font></td>
-<td style="text-align: left">[*2]</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822">5822</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">IP_H3</td>
-<td style="text-align: left">(<font color="Red">????</font>, +0.237)</td>
+<td style="text-align: left">(+0.237, +0.237)</td>
 <td style="text-align: left">(<font color="Red">????</font>, 0)</td>
 <td style="text-align: left"><font color="Red">(????, ????)</font></td>
-<td style="text-align: left">[*2]</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822">5822</a>,<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5829">5829</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F0_GAS</td>
 <td style="text-align: left">(<font color="Red">????</font>, -0.300)</td>
 <td style="text-align: left">(<font color="Red">????</font>, 0)</td>
 <td style="text-align: left"><font color="Red">(????, ????)</font></td>
-<td style="text-align: left">[*2]</td>
+<td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5822">5822</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">F1_GAS</td>
@@ -837,14 +837,14 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 </tr>
 <tr>
 <td style="text-align: left">F3_GAS</td>
-<td style="text-align: left">(+0.219, +0.219) [*3]</td>
+<td style="text-align: left">(+0.219, +0.219) [*2]</td>
 <td style="text-align: left">(0, 0)</td>
 <td style="text-align: left">(-0.8e4, +0.8e4)</td>
 <td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5325">5325</a>]</td>
 </tr>
 <tr>
 <td style="text-align: left">BF_GAS</td>
-<td style="text-align: left">(+0.452, <font color="Red">+0.321</font>) [*4]</td>
+<td style="text-align: left">(+0.452, <font color="Red">+0.321</font>) [*3]</td>
 <td style="text-align: left">(<font color="Red">????</font>, 0)</td>
 <td style="text-align: left"><font color="Red">(????, ????)</font></td>
 <td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5249">5249</a>]</td>
@@ -858,7 +858,7 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 </tr>
 <tr>
 <td style="text-align: left">BF_H2</td>
-<td style="text-align: left">(-0.337, <font color="Red">+0.334</font>) [*5]</td>
+<td style="text-align: left">(-0.337, <font color="Red">+0.334</font>) [*4]</td>
 <td style="text-align: left">(xxxx, 0)</td>
 <td style="text-align: left">(-2e4, 2e4)</td>
 <td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
@@ -879,7 +879,7 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 </tr>
 <tr>
 <td style="text-align: left">BF_V2</td>
-<td style="text-align: left">(-0.313, <font color="Red">+0.313</font>) [*5]</td>
+<td style="text-align: left">(-0.313, <font color="Red">+0.313</font>) [*4]</td>
 <td style="text-align: left">(xxxx, 0)</td>
 <td style="text-align: left">(-2e4, 2e4)</td>
 <td style="text-align: left">[<a href="http://klog.icrr.u-tokyo.ac.jp/osl/?r=5756">5756</a>]</td>
@@ -896,7 +896,6 @@ b1 = (a1*1000)/Gain = +1.64e4 [cnt]</code></pre></div>
 
 <ol>
 <li><font color='Red'>Where should we refer this value?</font> #5494のグラフより、-2.5Vをノミナル位置として±1Vの線形範囲をもつことがわかる。この範囲での係数は0.951 [um/cnt]。だがmedmではは0V位置をノミナルにしているので、この係数は使えない。使うには0V付近でフィッティングした係数を使う必要あり。</li>
-<li><font color='Red'>Where should we refer this value?</font> I could not find the values on klog. </li>
 <li>Use correct c2v.</li>
 <li><font color='Red'>Where should we refer this value?</font> According to #5249, value should be +0.452. But, actual value on medm does not same as it.</li>
 <li><font color='Red'>Where should we refer this value?</font> According to #5756, value should be &quot;-0.337&quot; and &quot;-0.313&quot; for BF_H2 and BF_V2, respectively. But, actual value on medm does not same as these.</li>
